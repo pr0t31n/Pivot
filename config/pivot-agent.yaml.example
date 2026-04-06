@@ -1,0 +1,87 @@
+# ============================================================
+# Pivot Agent – Example Configuration
+# Copy to /etc/pivot/agent_config.yaml and edit.
+# ============================================================
+
+# ----- Listener -----
+relay:
+  bind_address: "0.0.0.0"   # Listen on all interfaces
+  port: 5200                  # Control port (must match client config)
+
+# ----- Security -----
+security:
+  # Shared secret used for HMAC-SHA256 authentication.
+  # Generate a strong value with: openssl rand -hex 32
+  auth_token: "REPLACE_WITH_LONG_RANDOM_SECRET"
+
+  tls:
+    enabled: true
+    certfile: "/etc/pivot/agent.crt"
+    keyfile:  "/etc/pivot/agent.key"
+
+    # Optional: path to the CA certificate that signed the client's cert.
+    # Required only when require_client_cert is true (mTLS).
+    cafile: "/etc/pivot/ca.crt"
+
+    # Set to true to enforce mutual TLS (client must present a certificate).
+    require_client_cert: false
+
+  # IP allowlist for incoming relay clients.
+  # Leave empty to allow any authenticated peer.
+  # Example: restrict to specific scanner server VPN IPs.
+  allowed_peers:
+    # - "192.168.1.10"
+    # - "192.168.1.11"
+
+# ----- Network Profiles -----
+# Define one entry per target network the relay should expose.
+# Multiple profiles can be activated simultaneously.
+networks:
+  # ── Direct profile ──────────────────────────────────────────────────
+  # This relay device is physically connected to the target LAN.
+  - name: "site-a"
+    target_cidr: "10.0.0.0/24"      # Target network to scan
+    egress_interface: "eth0"          # Interface facing the target LAN
+    vpn_interface: "tun0"             # Interface on the VPN
+
+  # ── Chained profile ─────────────────────────────────────────────────
+  # This relay forwards to an upstream relay that reaches the target LAN.
+  # Chains can be N hops deep by nesting upstream blocks on each relay.
+  #
+  # Traffic path:  Scanner → this relay (Relay A) → Relay B → 10.1.0.0/24
+  #
+  # - name: "site-b-via-relay-b"
+  #   target_cidr: "10.1.0.0/24"
+  #   egress_interface: "eth1"    # Interface on THIS relay facing Relay B
+  #   vpn_interface: "tun0"       # Interface where scanner traffic arrives
+  #
+  #   upstream:
+  #     host: "10.0.5.10"         # Relay B's IP (reachable from eth1)
+  #     port: 5200
+  #     auth_token: "relay-b-separate-secret"
+  #     tls:
+  #       enabled: true
+  #       cafile: "/etc/pivot/certs/relay-b-ca.crt"
+  #       server_hostname: "relay-b"
+  #       verify_hostname: true
+  #       # certfile: "/etc/pivot/certs/relay-a-client.crt"  # mTLS
+  #       # keyfile:  "/etc/pivot/certs/relay-a-client.key"
+  #     activate_networks: ["site-b"]   # Empty = activate all on Relay B
+  #     client_id: "relay-a-chain"
+  #     connect_timeout: 30
+  #     operation_timeout: 60
+  #     heartbeat_interval: 30
+
+# ----- Session Settings -----
+session:
+  # Close a session if no heartbeat arrives within this many seconds.
+  heartbeat_timeout: 90
+
+  # Maximum number of concurrent relay sessions.
+  max_sessions: 5
+
+# ----- Logging -----
+logging:
+  level: "INFO"                             # DEBUG | INFO | WARNING | ERROR
+  file: "/var/log/pivot/agent.log"  # Omit or leave null to disable
+  max_bytes: 10485760                       # Rotate at 10 MB (default)

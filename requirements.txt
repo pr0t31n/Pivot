@@ -1,0 +1,11 @@
+# Pivot — Secure IP-layer network relay for multi-hop vulnerability scanning
+# Python 3.8+ required
+#
+# All other dependencies are Python standard library modules:
+#   asyncio, ssl, json, struct, hmac, hashlib, subprocess,
+#   ipaddress, socket, signal, logging, platform, os, sys,
+#   argparse, enum, typing, atexit, threading
+#
+# External pip packages:
+PyYAML>=6.0
+cryptography>=41.0.0

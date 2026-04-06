@@ -1,0 +1,70 @@
+# =============================================================================
+# pivot  |  Client Configuration Example
+# =============================================================================
+# Copy this file to /etc/pivot/client_config.yaml and edit as needed.
+# Run pivot-client on your scanner server (Kali / Ubuntu / macOS).
+# Root is required on Linux to add IP routes (ip route add).
+# On macOS, sudo is required (route add).
+# =============================================================================
+
+relay:
+  # Hostname or IP address of the relay agent (e.g. VPN IP of the relay device).
+  host: "192.168.1.5"
+
+  # Must match the agent's relay.port.
+  port: 5200
+
+# -----------------------------------------------------------------------------
+security:
+  # Shared secret – must match the agent's security.auth_token exactly.
+  auth_token: "CHANGE_ME_use_openssl_rand_hex_32"
+
+  tls:
+    # Must match the agent's tls.enabled setting.
+    enabled: true
+
+    # CA certificate used to verify the agent's TLS certificate.
+    cafile: "/etc/pivot/certs/ca.crt"
+
+    # Client certificate + key (only needed when the agent requires mTLS,
+    # i.e. agent's security.tls.require_client_cert is true).
+    certfile: ""   # e.g. "/etc/pivot/certs/client.crt"
+    keyfile:  ""   # e.g. "/etc/pivot/certs/client.key"
+
+    # Hostname in the agent's TLS certificate (for SNI + verification).
+    # Usually the agent's DNS name or VPN IP as it appears in the cert SAN.
+    server_hostname: "pivot-agent"
+
+    # Set to false ONLY when using a self-signed cert without a matching SAN.
+    # Leaving this true is strongly recommended.
+    verify_hostname: true
+
+# -----------------------------------------------------------------------------
+# Which network profiles to activate. An empty list activates ALL profiles
+# the agent has configured. Name one or more profiles to select a subset.
+# Example: ["site-a", "site-b"]
+activate_networks: []
+
+# -----------------------------------------------------------------------------
+# A descriptive ID included in auth messages for agent-side audit logging.
+client_id: "scanner-01"
+
+# Seconds to wait when opening the TCP connection.
+connect_timeout: 10
+
+# Seconds to wait for individual protocol messages (auth, activate, etc.).
+operation_timeout: 30
+
+# How often to send heartbeat messages (seconds). Must be less than the
+# agent's session.heartbeat_timeout (default 90).
+heartbeat_interval: 30
+
+# -----------------------------------------------------------------------------
+logging:
+  level: "INFO"
+
+  # Log file path. Leave empty ("") to log only to stdout/stderr.
+  file: ""
+
+  # Maximum log file size in bytes before rotation (default 10 MB).
+  max_bytes: 10485760
