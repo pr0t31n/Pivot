@@ -16,6 +16,8 @@ import asyncio  # stdlib — Python Software Foundation; event-loop server (http
 import logging
 import os
 import signal   # stdlib — Python Software Foundation; SIGINT/SIGTERM for clean shutdown
+import platform
+import shutil
 import sys
 
 VERSION = "1.0.0"
@@ -91,6 +93,19 @@ async def _async_main(cfg) -> None:
     logger.info("Relay agent stopped cleanly")
 
 
+def _check_tools() -> None:
+    """Check required Linux networking tools at startup (no-op on macOS/Windows)."""
+    if platform.system() != "Linux":
+        return
+    REQUIRED_LINUX = ["iptables", "ip", "sysctl"]
+    missing = [t for t in REQUIRED_LINUX if not shutil.which(t)]
+    if missing:
+        for t in missing:
+            print(f"ERROR: Required tool not found: {t}  "
+                  f"(install iproute2 and iptables)", file=__import__('sys').stderr)
+        import sys as _sys; _sys.exit(1)
+
+
 def main() -> None:
     """Synchronous entry point registered in setup.py."""
     args = _parse_args()
@@ -102,6 +117,8 @@ def main() -> None:
             file=sys.stderr,
         )
         sys.exit(1)
+
+    _check_tools()
 
     # Load configuration first so we can set up logging correctly.
     try:
