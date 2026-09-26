@@ -20,7 +20,7 @@ import platform
 import shutil
 import sys
 
-VERSION = "1.0.0"
+VERSION = __import__("pathlib").Path(__file__).resolve().parents[2].joinpath("VERSION").read_text().strip()
 
 logger = logging.getLogger(__name__)
 
