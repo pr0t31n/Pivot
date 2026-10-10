@@ -150,6 +150,22 @@ def _brew_install(pkgs):
             run([brew_path, "install", pkg])
 
 
+# ─── pip pre-check ───────────────────────────────────────────────────────────
+
+def _pip_installed(pkg_spec):
+    import importlib.util
+    name = pkg_spec.split(">=")[0].split("==")[0].split("[")[0].split("<")[0].strip()
+    _IMPORT_MAP = {
+        "pyyaml": "yaml",
+        "PyYAML": "yaml",
+    }
+    mod = _IMPORT_MAP.get(name, name.replace("-", "_"))
+    try:
+        return importlib.util.find_spec(mod) is not None
+    except (ModuleNotFoundError, ValueError):
+        return False
+
+
 # ─── Windows warning ─────────────────────────────────────────────────────────
 
 def windows_warning():
@@ -218,6 +234,9 @@ def install_pip_packages(args):
         return
     pip = _pip_cmd()
     for pkg in PIP_PKGS:
+        if _pip_installed(pkg):
+            info(f"  ✓ {pkg} already installed")
+            continue
         info(f"pip install {pkg} …")
         try:
             run(pip + ["install", "--break-system-packages", pkg])
