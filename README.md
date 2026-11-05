@@ -15,6 +15,9 @@ The relay device uses `iptables MASQUERADE` to forward scan traffic from the VPN
 
 ---
 
+
+> **[View full documentation on the Codex Wiki](https://wiki.pr0t31n.com/tools/pivot)** — detailed features, CLI reference, findings catalogue, and integration guides.
+
 ## Features
 
 - **IP-layer relay, not SOCKS** — raw sockets, ICMP, UDP, and OS fingerprinting all work at full fidelity
